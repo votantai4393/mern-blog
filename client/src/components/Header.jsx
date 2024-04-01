@@ -1,9 +1,33 @@
-import { Button, Navbar, TextInput } from 'flowbite-react'
-import { Link, useLocation } from 'react-router-dom'
+import { Button, Navbar, TextInput, Avatar, Dropdown } from 'flowbite-react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { AiOutlineSearch } from 'react-icons/ai'
-import { FaMoon } from 'react-icons/fa'
+import { FaMoon, FaSun } from 'react-icons/fa'
+import { useDispatch, useSelector } from 'react-redux'
+import { toggleTheme } from '../redux/themeSlice'
+import { signOutSuccess } from '../redux/userSlice'
+
 export default function Header() {
+	const dispatch = useDispatch()
+	const { currentUser } = useSelector(state => state.user)
+	const theme = useSelector(state => state.theme.theme)
 	const location = useLocation().pathname
+	const navigate = useNavigate()
+
+	const handleSignOut = async () => {
+		try {
+			const res = await fetch('/api/user/sign-out', {
+				method: 'POST'
+			})
+			const data = await res.json()
+			if (!res.ok) {
+				console.log(data.message)
+			} else {
+				dispatch(signOutSuccess())
+			}
+		} catch (error) {
+			console.log(error.message)
+		}
+	}
 	return (
 		<Navbar className="border-b-2">
 			<Link
@@ -30,14 +54,40 @@ export default function Header() {
 				<AiOutlineSearch />
 			</Button>
 			<div className="flex gap-2 md:order-2">
-				<Button className="w-12 h-10 hidden sm:inline" color="gray" pill>
-					<FaMoon />
+				<Button
+					onClick={() => dispatch(toggleTheme())}
+					className="w-12 h-10 hidden sm:inline"
+					color="gray"
+					pill
+				>
+					{theme === 'dark' ? <FaMoon /> : <FaSun />}
 				</Button>
-				<Link to="/sign-in">
-					<Button gradientDuoTone={'purpleToBlue'} outline>
-						Sign in
-					</Button>
-				</Link>
+				{currentUser ? (
+					<Dropdown
+						arrowIcon={false}
+						inline
+						label={<Avatar alt="user" img={currentUser.avatar} rounded />}
+					>
+						<Dropdown.Header>
+							<span className="block text-sm">@{currentUser.username}</span>
+							<span className="block text-sm font-medium truncate">
+								{currentUser.email}
+							</span>
+						</Dropdown.Header>
+						<Link to={'/dashboard?tab=profile'}>
+							<Dropdown.Item>Profile</Dropdown.Item>
+						</Link>
+						<Dropdown.Divider />
+						<Dropdown.Item onClick={handleSignOut}>Sign out</Dropdown.Item>
+					</Dropdown>
+				) : (
+					<Link to="/sign-in">
+						<Button gradientDuoTone="purpleToBlue" outline>
+							Sign In
+						</Button>
+					</Link>
+				)}
+				<Navbar.Toggle />
 			</div>
 			<Navbar.Collapse>
 				<Navbar.Link active={location === '/'} as={'div'}>
@@ -50,7 +100,6 @@ export default function Header() {
 					<Link to="/projects">Projects</Link>
 				</Navbar.Link>
 			</Navbar.Collapse>
-			<Navbar.Toggle />
 		</Navbar>
 	)
 }

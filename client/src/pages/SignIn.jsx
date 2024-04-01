@@ -34,7 +34,7 @@ export default function SignIn() {
 				return dispatch(signInFailure(data.message))
 			}
 			if (response.ok) {
-				dispatch(signInSuccess(data))
+				dispatch(signInSuccess(data.userInfo))
 				navigate('/')
 			}
 		} catch (error) {

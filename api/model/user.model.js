@@ -15,6 +15,14 @@ const userSchema = new mongoose.Schema(
 		password: {
 			type: String,
 			required: true
+		},
+		avatar: {
+			type: String,
+			default: 'https://th.bing.com/th/id/OIP.OesLvyzDO6AvU_hYUAT4IAHaHa'
+		},
+		isAdmin: {
+			type: Boolean,
+			default: false
 		}
 	},
 	{

@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom'
 export default function OAuth() {
 	const dispatch = useDispatch()
 	const navigate = useNavigate()
+
 	const handleClick = async e => {
 		const auth = getAuth(app)
 		const provider = new GoogleAuthProvider()
@@ -23,7 +24,7 @@ export default function OAuth() {
 				body: JSON.stringify({
 					name: result.user.displayName,
 					email: result.user.email,
-					img: result.user.photoURL
+					avatar: result.user.photoURL
 				})
 			})
 			const data = await res.json()
