@@ -30,12 +30,12 @@ export default function SignIn() {
 				body: JSON.stringify(formData)
 			})
 			const data = await response.json()
-			if (data.success === false) {
-				return dispatch(signInFailure(data.message))
-			}
 			if (response.ok) {
-				dispatch(signInSuccess(data.userInfo))
+				dispatch(signInSuccess(data))
 				navigate('/')
+			} else {
+				dispatch(signInFailure(data.message))
+				console.log(data.message)
 			}
 		} catch (error) {
 			dispatch(signInFailure(error.message))

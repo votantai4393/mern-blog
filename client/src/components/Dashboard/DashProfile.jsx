@@ -10,7 +10,7 @@ import {
 	ref,
 	uploadBytesResumable
 } from 'firebase/storage'
-import { app } from '../firebase'
+import { app } from '../../firebase'
 import 'react-circular-progressbar/dist/styles.css'
 import {
 	updateStart,
@@ -20,13 +20,13 @@ import {
 	deleteSuccess,
 	deleteFailure,
 	signOutSuccess
-} from '../redux/userSlice'
+} from '../../redux/userSlice'
 
 export default function DashProfile() {
-	const { currentUser, error, loading } = useSelector(state => state.user)
+	const { currentUser, loading, error } = useSelector(state => state.user)
 
 	const [imageFile, setImageFile] = useState(null)
-	const [imageFileUrl, setImageFileUrl] = useState(null)
+	const [imageFileUrl, setImageFileUrl] = useState('')
 	const [imageFileUploadProgress, setImageFileUploadProgress] = useState(null)
 	const [imageFileUploadError, setImageFileUploadError] = useState(null)
 	const [imageFileUploading, setImageFileUploading] = useState(false)
@@ -39,9 +39,7 @@ export default function DashProfile() {
 	const dispatch = useDispatch()
 
 	useEffect(() => {
-		if (imageFile) {
-			uploadImage()
-		}
+		imageFile && uploadImage()
 	}, [imageFile])
 
 	const handleImageChange = e => {
@@ -59,15 +57,14 @@ export default function DashProfile() {
 	const uploadImage = async () => {
 		setImageFileUploading(true)
 		setImageFileUploadError(null)
+
 		const storage = getStorage(app)
-		const fileName = new Date().getTime() + imageFile.name
-		const storageRef = ref(storage, fileName)
+		const storageRef = ref(storage, new Date().getTime() + imageFile.name)
 		const uploadTask = uploadBytesResumable(storageRef, imageFile)
 		uploadTask.on(
 			'state_changed',
 			snapshot => {
 				const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
-
 				setImageFileUploadProgress(progress.toFixed(0))
 			},
 			() => {
@@ -82,7 +79,7 @@ export default function DashProfile() {
 			() => {
 				getDownloadURL(uploadTask.snapshot.ref).then(downloadURL => {
 					setImageFileUrl(downloadURL)
-					setFormData({ ...formData, profilePicture: downloadURL })
+					setFormData({ ...formData, avatar: downloadURL })
 					setImageFileUploading(false)
 				})
 			}
@@ -91,15 +88,15 @@ export default function DashProfile() {
 
 	const handleSubmit = async e => {
 		e.preventDefault()
+
 		setUpdateUserError(null)
 		setUpdateUserSuccess(null)
+
 		if (Object.keys(formData).length === 0) {
-			setUpdateUserError('No changes made')
-			return
+			return setUpdateUserError('No changes made')
 		}
 		if (imageFileUploading) {
-			setUpdateUserError('Please wait for image to upload')
-			return
+			return setUpdateUserError('Please wait for image to upload')
 		}
 		try {
 			dispatch(updateStart())
@@ -110,12 +107,14 @@ export default function DashProfile() {
 				},
 				body: JSON.stringify(formData)
 			})
+
 			const data = await res.json()
+
 			if (!res.ok) {
 				dispatch(updateFailure(data.message))
 				setUpdateUserError(data.message)
 			} else {
-				dispatch(updateSuccess(data))
+				dispatch(updateSuccess(data.userInfo))
 				setUpdateUserSuccess("User's profile updated successfully")
 			}
 		} catch (error) {
@@ -125,6 +124,7 @@ export default function DashProfile() {
 	}
 	const handleDeleteUser = async () => {
 		setShowModal(false)
+
 		try {
 			dispatch(deleteStart())
 			const res = await fetch(`/api/user/delete/${currentUser._id}`, {
@@ -134,7 +134,7 @@ export default function DashProfile() {
 			if (!res.ok) {
 				dispatch(deleteFailure(data.message))
 			} else {
-				dispatch(deleteSuccess(data))
+				dispatch(deleteSuccess(data.message))
 			}
 		} catch (error) {
 			dispatch(deleteFailure(error.message))
@@ -251,19 +251,14 @@ export default function DashProfile() {
 					Sign Out
 				</span>
 			</div>
-			{updateUserSuccess && (
+			{(updateUserSuccess || error) && (
 				<Alert color="success" className="mt-5">
-					{updateUserSuccess}
+					{updateUserSuccess || error}
 				</Alert>
 			)}
 			{updateUserError && (
 				<Alert color="failure" className="mt-5">
 					{updateUserError}
-				</Alert>
-			)}
-			{error && (
-				<Alert color="failure" className="mt-5">
-					{error}
 				</Alert>
 			)}
 			<Modal
@@ -281,7 +276,7 @@ export default function DashProfile() {
 						</h3>
 						<div className="flex justify-center gap-4">
 							<Button color="failure" onClick={handleDeleteUser}>
-								Yes, I'm sure
+								Yes, I am sure
 							</Button>
 							<Button color="gray" onClick={() => setShowModal(false)}>
 								No, cancel

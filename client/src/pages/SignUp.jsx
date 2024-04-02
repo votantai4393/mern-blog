@@ -32,6 +32,7 @@ export default function SignUp() {
 			})
 			const data = await response.json()
 			if (data.success === false) {
+				setLoading(false)
 				return setError(data.message)
 			}
 			setLoading(false)

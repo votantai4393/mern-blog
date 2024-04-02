@@ -6,26 +6,26 @@ const commentSchema = new mongoose.Schema(
 			type: String,
 			required: true
 		},
-		userId: {
-			type: String,
-			required: true
-		},
 		postId: {
 			type: String,
 			required: true
 		},
-		likedUsers: {
+		userId: {
+			type: String,
+			required: true
+		},
+		likes: {
 			type: Array,
 			default: []
 		},
-		likes: {
+		numberOfLikes: {
 			type: Number,
 			default: 0
 		}
 	},
-	{
-		timestamps: true
-	}
+	{ timestamps: true }
 )
 
-export default mongoose.model('Comment', commentSchema)
+const Comment = mongoose.model('Comment', commentSchema)
+
+export default Comment

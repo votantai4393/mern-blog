@@ -10,33 +10,36 @@ export default function OAuth() {
 	const dispatch = useDispatch()
 	const navigate = useNavigate()
 
-	const handleClick = async e => {
+	const handleClick = async () => {
 		const auth = getAuth(app)
 		const provider = new GoogleAuthProvider()
 		provider.setCustomParameters({
 			prompt: 'select_account'
 		})
+
 		try {
 			const result = await signInWithPopup(auth, provider)
+			const { displayName, email, photoURL } = result.user
+
 			const res = await fetch('/api/auth/google', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
-					name: result.user.displayName,
-					email: result.user.email,
-					avatar: result.user.photoURL
+					name: displayName,
+					email: email,
+					avatar: photoURL
 				})
 			})
 			const data = await res.json()
-			if (data.success === false) {
-				dispatch(signInFailure(data.message))
-			}
 			if (res.ok) {
 				dispatch(signInSuccess(data))
 				navigate('/')
+			} else {
+				dispatch(signInFailure(data.message))
+				console.log(data.message)
 			}
 		} catch (error) {
-			dispatch(signInFailure(data.message))
+			dispatch(signInFailure(error.message))
 		}
 	}
 	return (

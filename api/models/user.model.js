@@ -9,25 +9,26 @@ const userSchema = new mongoose.Schema(
 		},
 		email: {
 			type: String,
-			unique: true,
-			required: true
+			required: true,
+			unique: true
 		},
 		password: {
 			type: String,
 			required: true
 		},
-		avatar: {
+		profilePicture: {
 			type: String,
-			default: 'https://th.bing.com/th/id/OIP.OesLvyzDO6AvU_hYUAT4IAHaHa'
+			default:
+				'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png'
 		},
 		isAdmin: {
 			type: Boolean,
 			default: false
 		}
 	},
-	{
-		timestamps: true
-	}
+	{ timestamps: true }
 )
 
-export default mongoose.model('User', userSchema)
+const User = mongoose.model('User', userSchema)
+
+export default User

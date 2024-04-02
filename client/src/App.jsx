@@ -9,10 +9,10 @@ import Search from './pages/Search'
 import PostPage from './pages/PostPage'
 import UpdatePost from './pages/UpdatePost'
 import CreatePost from './pages/CreatePost'
-import Header from './components/Header'
-import Footer from './components/Footer'
-import PrivateRoute from './components/PrivateRoute'
-import OnlyAdminPrivate from './components/OnlyAdminPrivate'
+import Header from './components/layout/Header'
+import Footer from './components/layout/Footer'
+import PrivateRoute from './components/verifiedRoute/PrivateRoute'
+import OnlyAdminPrivateRoute from './components/verifiedRoute/OnlyAdminPrivateRoute'
 import ScrollToTop from './components/ScrollToTop'
 
 function App() {
@@ -29,7 +29,7 @@ function App() {
 				<Route element={<PrivateRoute />}>
 					<Route path="/dashboard" element={<Dashboard />} />
 				</Route>
-				<Route element={<OnlyAdminPrivate />}>
+				<Route element={<OnlyAdminPrivateRoute />}>
 					<Route path="/create-post" element={<CreatePost />} />
 					<Route path="/update-post/:id" element={<UpdatePost />} />
 				</Route>

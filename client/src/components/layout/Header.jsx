@@ -1,17 +1,16 @@
 import { Button, Navbar, TextInput, Avatar, Dropdown } from 'flowbite-react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { AiOutlineSearch } from 'react-icons/ai'
 import { FaMoon, FaSun } from 'react-icons/fa'
 import { useDispatch, useSelector } from 'react-redux'
-import { toggleTheme } from '../redux/themeSlice'
-import { signOutSuccess } from '../redux/userSlice'
+import { toggleTheme } from '../../redux/themeSlice'
+import { signOutSuccess } from '../../redux/userSlice'
 
 export default function Header() {
 	const dispatch = useDispatch()
 	const { currentUser } = useSelector(state => state.user)
 	const theme = useSelector(state => state.theme.theme)
 	const location = useLocation().pathname
-	const navigate = useNavigate()
 
 	const handleSignOut = async () => {
 		try {

@@ -11,7 +11,7 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { useSelector } from 'react-redux'
-import { signOutSuccess } from '../redux/userSlice'
+import { signOutSuccess } from '../../redux/userSlice'
 
 export default function DashSidebar() {
 	const location = useLocation()
