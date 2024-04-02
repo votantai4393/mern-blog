@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { Button, Spinner, Alert } from 'flowbite-react'
+import { Button, Spinner } from 'flowbite-react'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import CallToAction from '../components/CallToAction'
@@ -17,7 +17,7 @@ export default function PostPage() {
 		const fetchPost = async () => {
 			try {
 				setLoading(true)
-				const res = await fetch(`/api/post/posts?slug=${postSlug}`)
+				const res = await fetch(`/api/post/getposts?slug=${postSlug}`)
 				const data = await res.json()
 				if (!res.ok) {
 					setError(true)
@@ -40,9 +40,8 @@ export default function PostPage() {
 	useEffect(() => {
 		try {
 			const fetchRecentPosts = async () => {
-				const res = await fetch(`/api/post/posts?limit=3`)
+				const res = await fetch(`/api/post/getposts?limit=3`)
 				const data = await res.json()
-
 				if (res.ok) {
 					setRecentPosts(data.posts)
 				}
@@ -87,7 +86,9 @@ export default function PostPage() {
 				className="p-3 max-w-2xl mx-auto w-full post-content"
 				dangerouslySetInnerHTML={{ __html: post && post.content }}
 			></div>
-
+			<div className="max-w-4xl mx-auto w-full">
+				<CallToAction />
+			</div>
 			<CommentSection postId={post._id} />
 
 			<div className="flex flex-col justify-center items-center mb-5">
@@ -96,9 +97,6 @@ export default function PostPage() {
 					{recentPosts &&
 						recentPosts.map(post => <PostCard key={post._id} post={post} />)}
 				</div>
-			</div>
-			<div className="max-w-4xl mx-auto w-full">
-				<CallToAction />
 			</div>
 		</main>
 	)

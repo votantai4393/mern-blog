@@ -1,7 +1,6 @@
 import { Alert, Button, FileInput, Select, TextInput } from 'flowbite-react'
 import ReactQuill from 'react-quill'
 import 'react-quill/dist/quill.snow.css'
-import 'react-circular-progressbar/dist/styles.css'
 import {
 	getDownloadURL,
 	getStorage,
@@ -11,9 +10,10 @@ import {
 import { app } from '../firebase'
 import { useState } from 'react'
 import { CircularProgressbar } from 'react-circular-progressbar'
+import 'react-circular-progressbar/dist/styles.css'
 import { useNavigate } from 'react-router-dom'
 
-function CreatePost() {
+export default function CreatePost() {
 	const [file, setFile] = useState(null)
 	const [imageUploadProgress, setImageUploadProgress] = useState(null)
 	const [imageUploadError, setImageUploadError] = useState(null)
@@ -22,14 +22,16 @@ function CreatePost() {
 
 	const navigate = useNavigate()
 
-	const handleUploadImage = async () => {
+	const handleUpdloadImage = async () => {
 		try {
 			if (!file) {
-				return setImageUploadError('Please select an image')
+				setImageUploadError('Please select an image')
+				return
 			}
 			setImageUploadError(null)
 			const storage = getStorage(app)
-			const storageRef = ref(storage, new Date().getTime() + '-' + file.name)
+			const fileName = new Date().getTime() + '-' + file.name
+			const storageRef = ref(storage, fileName)
 			const uploadTask = uploadBytesResumable(storageRef, file)
 			uploadTask.on(
 				'state_changed',
@@ -56,7 +58,6 @@ function CreatePost() {
 			console.log(error)
 		}
 	}
-
 	const handleSubmit = async e => {
 		e.preventDefault()
 		try {
@@ -67,11 +68,13 @@ function CreatePost() {
 				},
 				body: JSON.stringify(formData)
 			})
-
 			const data = await res.json()
 			if (!res.ok) {
-				return setPublishError(data.message)
-			} else {
+				setPublishError(data.message)
+				return
+			}
+
+			if (res.ok) {
 				setPublishError(null)
 				navigate(`/post/${data.slug}`)
 			}
@@ -79,7 +82,6 @@ function CreatePost() {
 			setPublishError('Something went wrong')
 		}
 	}
-
 	return (
 		<div className="p-3 max-w-3xl mx-auto min-h-screen">
 			<h1 className="text-center text-3xl my-7 font-semibold">Create a post</h1>
@@ -115,7 +117,7 @@ function CreatePost() {
 						gradientDuoTone="purpleToBlue"
 						size="sm"
 						outline
-						onClick={handleUploadImage}
+						onClick={handleUpdloadImage}
 						disabled={imageUploadProgress}
 					>
 						{imageUploadProgress ? (
@@ -150,7 +152,6 @@ function CreatePost() {
 				<Button type="submit" gradientDuoTone="purpleToPink">
 					Publish
 				</Button>
-
 				{publishError && (
 					<Alert className="mt-5" color="failure">
 						{publishError}
@@ -160,5 +161,3 @@ function CreatePost() {
 		</div>
 	)
 }
-
-export default CreatePost

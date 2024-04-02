@@ -3,13 +3,14 @@ import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import PostCard from '../components/PostCard'
 
-function Search() {
+export default function Search() {
 	const [sidebarData, setSidebarData] = useState({
 		searchTerm: '',
 		sort: 'desc',
 		category: 'uncategorized'
 	})
 
+	console.log(sidebarData)
 	const [posts, setPosts] = useState([])
 	const [loading, setLoading] = useState(false)
 	const [showMore, setShowMore] = useState(false)
@@ -35,7 +36,7 @@ function Search() {
 		const fetchPosts = async () => {
 			setLoading(true)
 			const searchQuery = urlParams.toString()
-			const res = await fetch(`/api/post/posts?${searchQuery}`)
+			const res = await fetch(`/api/post/getposts?${searchQuery}`)
 			if (!res.ok) {
 				setLoading(false)
 				return
@@ -84,9 +85,8 @@ function Search() {
 		const urlParams = new URLSearchParams(location.search)
 		urlParams.set('startIndex', startIndex)
 		const searchQuery = urlParams.toString()
-		const res = await fetch(`/api/post/posts?${searchQuery}`)
+		const res = await fetch(`/api/post/getposts?${searchQuery}`)
 		if (!res.ok) {
-			console.log('Something went wrong')
 			return
 		}
 		if (res.ok) {
@@ -166,5 +166,3 @@ function Search() {
 		</div>
 	)
 }
-
-export default Search

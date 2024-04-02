@@ -14,7 +14,7 @@ import 'react-circular-progressbar/dist/styles.css'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 
-function UpdatePost() {
+export default function UpdatePost() {
 	const [file, setFile] = useState(null)
 	const [imageUploadProgress, setImageUploadProgress] = useState(null)
 	const [imageUploadError, setImageUploadError] = useState(null)
@@ -28,15 +28,13 @@ function UpdatePost() {
 	useEffect(() => {
 		try {
 			const fetchPost = async () => {
-				const res = await fetch(`/api/post/posts?postId=${postId}`)
+				const res = await fetch(`/api/post/getposts?postId=${postId}`)
 				const data = await res.json()
-
 				if (!res.ok) {
 					console.log(data.message)
 					setPublishError(data.message)
 					return
 				}
-
 				if (res.ok) {
 					setPublishError(null)
 					setFormData(data.posts[0])
@@ -49,7 +47,7 @@ function UpdatePost() {
 		}
 	}, [postId])
 
-	const handleUploadImage = async () => {
+	const handleUpdloadImage = async () => {
 		try {
 			if (!file) {
 				setImageUploadError('Please select an image')
@@ -85,17 +83,19 @@ function UpdatePost() {
 			console.log(error)
 		}
 	}
-
 	const handleSubmit = async e => {
 		e.preventDefault()
 		try {
-			const res = await fetch(`/api/post/update/${postId}/${currentUser._id}`, {
-				method: 'PUT',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify(formData)
-			})
+			const res = await fetch(
+				`/api/post/updatepost/${formData._id}/${currentUser._id}`,
+				{
+					method: 'PUT',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify(formData)
+				}
+			)
 			const data = await res.json()
 			if (!res.ok) {
 				setPublishError(data.message)
@@ -147,7 +147,7 @@ function UpdatePost() {
 						gradientDuoTone="purpleToBlue"
 						size="sm"
 						outline
-						onClick={handleUploadImage}
+						onClick={handleUpdloadImage}
 						disabled={imageUploadProgress}
 					>
 						{imageUploadProgress ? (
@@ -192,5 +192,3 @@ function UpdatePost() {
 		</div>
 	)
 }
-
-export default UpdatePost

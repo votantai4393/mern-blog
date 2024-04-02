@@ -1,32 +1,32 @@
 import { Alert, Button, Modal, TextInput } from 'flowbite-react'
 import { useEffect, useRef, useState } from 'react'
-import { useSelector, useDispatch } from 'react-redux'
-import { HiOutlineExclamationCircle } from 'react-icons/hi'
-import { Link } from 'react-router-dom'
-import { CircularProgressbar } from 'react-circular-progressbar'
+import { useSelector } from 'react-redux'
 import {
 	getDownloadURL,
 	getStorage,
 	ref,
 	uploadBytesResumable
 } from 'firebase/storage'
-import { app } from '../../firebase'
+import { app } from '../firebase'
+import { CircularProgressbar } from 'react-circular-progressbar'
 import 'react-circular-progressbar/dist/styles.css'
 import {
 	updateStart,
 	updateSuccess,
 	updateFailure,
-	deleteStart,
-	deleteSuccess,
-	deleteFailure,
-	signOutSuccess
-} from '../../redux/userSlice'
+	deleteUserStart,
+	deleteUserSuccess,
+	deleteUserFailure,
+	signoutSuccess
+} from '../redux/user/userSlice'
+import { useDispatch } from 'react-redux'
+import { HiOutlineExclamationCircle } from 'react-icons/hi'
+import { Link } from 'react-router-dom'
 
 export default function DashProfile() {
-	const { currentUser, loading, error } = useSelector(state => state.user)
-
+	const { currentUser, error, loading } = useSelector(state => state.user)
 	const [imageFile, setImageFile] = useState(null)
-	const [imageFileUrl, setImageFileUrl] = useState('')
+	const [imageFileUrl, setImageFileUrl] = useState(null)
 	const [imageFileUploadProgress, setImageFileUploadProgress] = useState(null)
 	const [imageFileUploadError, setImageFileUploadError] = useState(null)
 	const [imageFileUploading, setImageFileUploading] = useState(false)
@@ -34,14 +34,8 @@ export default function DashProfile() {
 	const [updateUserError, setUpdateUserError] = useState(null)
 	const [showModal, setShowModal] = useState(false)
 	const [formData, setFormData] = useState({})
-
 	const filePickerRef = useRef()
 	const dispatch = useDispatch()
-
-	useEffect(() => {
-		imageFile && uploadImage()
-	}, [imageFile])
-
 	const handleImageChange = e => {
 		const file = e.target.files[0]
 		if (file) {
@@ -49,22 +43,24 @@ export default function DashProfile() {
 			setImageFileUrl(URL.createObjectURL(file))
 		}
 	}
-
-	const handleChange = e => {
-		setFormData({ ...formData, [e.target.id]: e.target.value })
-	}
+	useEffect(() => {
+		if (imageFile) {
+			uploadImage()
+		}
+	}, [imageFile])
 
 	const uploadImage = async () => {
 		setImageFileUploading(true)
 		setImageFileUploadError(null)
-
 		const storage = getStorage(app)
-		const storageRef = ref(storage, new Date().getTime() + imageFile.name)
+		const fileName = new Date().getTime() + imageFile.name
+		const storageRef = ref(storage, fileName)
 		const uploadTask = uploadBytesResumable(storageRef, imageFile)
 		uploadTask.on(
 			'state_changed',
 			snapshot => {
 				const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+
 				setImageFileUploadProgress(progress.toFixed(0))
 			},
 			() => {
@@ -79,24 +75,28 @@ export default function DashProfile() {
 			() => {
 				getDownloadURL(uploadTask.snapshot.ref).then(downloadURL => {
 					setImageFileUrl(downloadURL)
-					setFormData({ ...formData, avatar: downloadURL })
+					setFormData({ ...formData, profilePicture: downloadURL })
 					setImageFileUploading(false)
 				})
 			}
 		)
 	}
 
+	const handleChange = e => {
+		setFormData({ ...formData, [e.target.id]: e.target.value })
+	}
+
 	const handleSubmit = async e => {
 		e.preventDefault()
-
 		setUpdateUserError(null)
 		setUpdateUserSuccess(null)
-
 		if (Object.keys(formData).length === 0) {
-			return setUpdateUserError('No changes made')
+			setUpdateUserError('No changes made')
+			return
 		}
 		if (imageFileUploading) {
-			return setUpdateUserError('Please wait for image to upload')
+			setUpdateUserError('Please wait for image to upload')
+			return
 		}
 		try {
 			dispatch(updateStart())
@@ -107,14 +107,12 @@ export default function DashProfile() {
 				},
 				body: JSON.stringify(formData)
 			})
-
 			const data = await res.json()
-
 			if (!res.ok) {
 				dispatch(updateFailure(data.message))
 				setUpdateUserError(data.message)
 			} else {
-				dispatch(updateSuccess(data.userInfo))
+				dispatch(updateSuccess(data))
 				setUpdateUserSuccess("User's profile updated successfully")
 			}
 		} catch (error) {
@@ -124,33 +122,32 @@ export default function DashProfile() {
 	}
 	const handleDeleteUser = async () => {
 		setShowModal(false)
-
 		try {
-			dispatch(deleteStart())
+			dispatch(deleteUserStart())
 			const res = await fetch(`/api/user/delete/${currentUser._id}`, {
 				method: 'DELETE'
 			})
 			const data = await res.json()
 			if (!res.ok) {
-				dispatch(deleteFailure(data.message))
+				dispatch(deleteUserFailure(data.message))
 			} else {
-				dispatch(deleteSuccess(data.message))
+				dispatch(deleteUserSuccess(data))
 			}
 		} catch (error) {
-			dispatch(deleteFailure(error.message))
+			dispatch(deleteUserFailure(error.message))
 		}
 	}
 
-	const handleSignOut = async () => {
+	const handleSignout = async () => {
 		try {
-			const res = await fetch('/api/user/sign-out', {
+			const res = await fetch('/api/user/signout', {
 				method: 'POST'
 			})
 			const data = await res.json()
 			if (!res.ok) {
 				console.log(data.message)
 			} else {
-				dispatch(signOutSuccess())
+				dispatch(signoutSuccess())
 			}
 		} catch (error) {
 			console.log(error.message)
@@ -191,7 +188,7 @@ export default function DashProfile() {
 						/>
 					)}
 					<img
-						src={imageFileUrl || currentUser.avatar}
+						src={imageFileUrl || currentUser.profilePicture}
 						alt="user"
 						className={`rounded-full w-full h-full object-cover border-8 border-[lightgray] ${
 							imageFileUploadProgress &&
@@ -247,18 +244,23 @@ export default function DashProfile() {
 				<span onClick={() => setShowModal(true)} className="cursor-pointer">
 					Delete Account
 				</span>
-				<span onClick={handleSignOut} className="cursor-pointer">
+				<span onClick={handleSignout} className="cursor-pointer">
 					Sign Out
 				</span>
 			</div>
-			{(updateUserSuccess || error) && (
+			{updateUserSuccess && (
 				<Alert color="success" className="mt-5">
-					{updateUserSuccess || error}
+					{updateUserSuccess}
 				</Alert>
 			)}
 			{updateUserError && (
 				<Alert color="failure" className="mt-5">
 					{updateUserError}
+				</Alert>
+			)}
+			{error && (
+				<Alert color="failure" className="mt-5">
+					{error}
 				</Alert>
 			)}
 			<Modal
